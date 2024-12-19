@@ -6,13 +6,15 @@ sealed class Cell {
 
     class Mine : Cell() {
         override fun display(): Char {
-            return if (isOpen) OPEN_CELL else CLOSE_CELL
+            if (isOpen) return OPEN_CELL
+            return CLOSE_CELL
         }
     }
 
-    class Empty(val adjacentMines: Int) : Cell() {
+    class Empty(val adjacentMines: Int = 0) : Cell() {
         override fun display(): Char {
-            return if (isOpen) adjacentMines.digitToChar() else CLOSE_CELL
+            if (isOpen) return adjacentMines.digitToChar()
+            return CLOSE_CELL
         }
     }
 

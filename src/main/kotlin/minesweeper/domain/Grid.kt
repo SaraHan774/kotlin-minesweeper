@@ -29,11 +29,8 @@ class Grid(
     ): Cell {
         val currentPosition = row * dimension.width + col
         val isMine = currentPosition in minePositions
-        return if (isMine) {
-            Cell.Mine()
-        } else {
-            Cell.Empty(0)
-        }
+        if (isMine) return Cell.Mine()
+        return Cell.Empty(0)
     }
 
     private fun mapAdjacentCounts(tempCells: List<List<Cell>>): List<List<Cell>> {
@@ -50,12 +47,11 @@ class Grid(
         col: Int,
         tempCells: List<List<Cell>>,
     ): Cell {
-        return if (cell is Cell.Mine) {
-            cell
-        } else {
+        if (cell !is Cell.Mine) {
             val count = countAdjacentMines(row, col, tempCells)
-            Cell.Empty(count)
+            return Cell.Empty(count)
         }
+        return Cell.Mine()
     }
 
     private fun countAdjacentMines(
@@ -82,12 +78,11 @@ class Grid(
     }
 
     fun openCell(row: Int, col: Int): Boolean {
-        return if (cells[row][col] is Cell.Mine) {
-            false
-        } else {
-            reveal(row, col)
-            true
+        if (cells[row][col] is Cell.Mine) {
+            return false
         }
+        reveal(row, col)
+        return true
     }
 
     private fun reveal(row: Int, col: Int) {
