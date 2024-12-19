@@ -30,9 +30,9 @@ class Grid(
         val currentPosition = row * dimension.width + col
         val isMine = currentPosition in minePositions
         return if (isMine) {
-            Cell(Mine())
+            Cell.Mine()
         } else {
-            Cell(Empty())
+            Cell.Empty(0)
         }
     }
 
@@ -50,11 +50,11 @@ class Grid(
         col: Int,
         tempCells: List<List<Cell>>,
     ): Cell {
-        return if (cell.isMine()) {
+        return if (cell is Cell.Mine) {
             cell
         } else {
             val count = countAdjacentMines(row, col, tempCells)
-            Cell(Empty(count))
+            Cell.Empty(count)
         }
     }
 
@@ -75,8 +75,36 @@ class Grid(
                 val adjacentRow = row + dx
                 val adjacentCol = col + dy
                 val isValidCell = isCurrentCell.not() && isWithinBounds(adjacentRow, adjacentCol, cells)
-                val isAdjacentCellMine = isValidCell && cells[adjacentRow][adjacentCol].isMine()
+                val isAdjacentCellMine = isValidCell && cells[adjacentRow][adjacentCol] is Cell.Mine
                 isAdjacentCellMine
+            }
+        }
+    }
+
+    fun openCell(row: Int, col: Int): Boolean {
+        return if (cells[row][col] is Cell.Mine) {
+            false
+        } else {
+            reveal(row, col)
+            true
+        }
+    }
+
+    private fun reveal(row: Int, col: Int) {
+        // 탈출조건 - 열려있거나, 지뢰거나, 더이상 인접 카운트가 0이 아닐때
+        if (cells[row][col].isOpen || cells[row][col] is Cell.Mine) return
+        // 열려있는 상태를 변경
+        cells[row][col].isOpen = true
+        // 지뢰 카운트 0 인 곳이라면 재귀 탐색
+        if ((cells[row][col] as Cell.Empty).adjacentMines == 0) {
+            for (dx in -1..1) {
+                for (dy in -1..1) {
+                    val newRow = row + dx
+                    val newCol = col + dy
+                    if (newRow in cells.indices && newCol in cells[newRow].indices) {
+                        reveal(newRow, newCol)
+                    }
+                }
             }
         }
     }
