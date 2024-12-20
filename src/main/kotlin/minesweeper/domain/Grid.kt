@@ -55,26 +55,24 @@ class Grid(
         }
     }
 
-    enum class CoordinateOffset(vararg val offsets: Int) {
-        X(-1, 0, 1),
-        Y(-1, 0, 1),
-    }
-
     fun openCell(row: Int, col: Int): Boolean {
-        if (cells[row][col] is Cell.Mine) {
+        val cell = cells[row][col]
+        cell.open()
+        if (cell.isOpenState) {
+            reveal(row, col)
+            return true
+        } else {
             return false
         }
-        reveal(row, col)
-        return true
     }
 
     private fun reveal(row: Int, col: Int) {
+        val cell = cells[row][col]
         // 탈출조건 - 열려있거나, 지뢰거나, 더이상 인접 카운트가 0이 아닐때
-        if (cells[row][col].isOpen || cells[row][col] is Cell.Mine) return
-        // 열려있는 상태를 변경
-        cells[row][col].isOpen = true
+        if (cell.isOpenState || cell.isMine()) return
+
         // 지뢰 카운트 0 인 곳이라면 재귀 탐색
-        if ((cells[row][col] as Cell.Empty).adjacentMines == 0) {
+        if ((cell.content as Empty).adjacentMines == 0) {
             for (dx in -1..1) {
                 for (dy in -1..1) {
                     val newRow = row + dx
@@ -85,5 +83,10 @@ class Grid(
                 }
             }
         }
+    }
+
+    enum class CoordinateOffset(vararg val offsets: Int) {
+        X(-1, 0, 1),
+        Y(-1, 0, 1),
     }
 }
