@@ -10,48 +10,26 @@ class Grid(
     private fun initializeCells(): List<List<Cell>> {
         val totalCells = dimension.totalCells()
         val minePositions = mineGenerator.generateMinePositions(totalCells, mineCount.count)
-        val tempCells = createInitialCells(minePositions) // Initial mine placement
-        return mapAdjacentCounts(tempCells)
+        val initialCells = createInitialCells(minePositions) // Initial mine placement
+        return mapAdjacentCounts(initialCells)
     }
 
     private fun createInitialCells(minePositions: Set<Int>): List<List<Cell>> {
         return (0 until dimension.height).map { row ->
             (0 until dimension.width).map { col ->
-                createInitialCell(row, col, minePositions)
+                val currentPosition = row * dimension.width + col
+                val isMine = currentPosition in minePositions
+                Cell.from(isMine)
             }
         }
-    }
-
-    private fun createInitialCell(
-        row: Int,
-        col: Int,
-        minePositions: Set<Int>,
-    ): Cell {
-        val currentPosition = row * dimension.width + col
-        val isMine = currentPosition in minePositions
-        if (isMine) return Cell.Mine()
-        return Cell.Empty(0)
     }
 
     private fun mapAdjacentCounts(tempCells: List<List<Cell>>): List<List<Cell>> {
         return tempCells.mapIndexed { row, rowCells ->
             rowCells.mapIndexed { col, cell ->
-                createAdjacentCountCell(cell, row, col, tempCells)
+                Cell.from(cell.isMine(), countAdjacentMines(row, col, tempCells))
             }
         }
-    }
-
-    private fun createAdjacentCountCell(
-        cell: Cell,
-        row: Int,
-        col: Int,
-        tempCells: List<List<Cell>>,
-    ): Cell {
-        if (cell !is Cell.Mine) {
-            val count = countAdjacentMines(row, col, tempCells)
-            return Cell.Empty(count)
-        }
-        return Cell.Mine()
     }
 
     private fun countAdjacentMines(
@@ -65,16 +43,21 @@ class Grid(
             cells: List<List<Cell>>,
         ) = row in cells.indices && col in cells[row].indices
 
-        return (-1..1).sumOf { dx ->
-            (-1..1).count { dy ->
+        return CoordinateOffset.X.offsets.sumOf { dx ->
+            CoordinateOffset.Y.offsets.count { dy ->
                 val isCurrentCell = dx == 0 && dy == 0
                 val adjacentRow = row + dx
                 val adjacentCol = col + dy
                 val isValidCell = isCurrentCell.not() && isWithinBounds(adjacentRow, adjacentCol, cells)
-                val isAdjacentCellMine = isValidCell && cells[adjacentRow][adjacentCol] is Cell.Mine
+                val isAdjacentCellMine = isValidCell && cells[adjacentRow][adjacentCol].isMine()
                 isAdjacentCellMine
             }
         }
+    }
+
+    enum class CoordinateOffset(vararg val offsets: Int) {
+        X(-1, 0, 1),
+        Y(-1, 0, 1),
     }
 
     fun openCell(row: Int, col: Int): Boolean {

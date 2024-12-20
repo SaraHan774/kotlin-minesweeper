@@ -9,7 +9,7 @@ object ResultView {
 
     fun renderBoard(grid: Grid) {
         grid.cells.forEach { row ->
-            println(row.joinToString(" ") { it.display().toString() })
+            println(row.joinToString(" ") { it.displayString() })
         }
     }
 
