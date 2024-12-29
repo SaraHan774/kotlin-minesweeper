@@ -73,8 +73,8 @@ class Grid(
 
         // 지뢰 카운트 0 인 곳이라면 재귀 탐색
         if ((cell.content as Empty).adjacentMines == 0) {
-            for (dx in -1..1) {
-                for (dy in -1..1) {
+            CoordinateOffset.X.offsets.forEach { dx ->
+                CoordinateOffset.Y.offsets.forEach { dy ->
                     val newRow = row + dx
                     val newCol = col + dy
                     if (newRow in cells.indices && newCol in cells[newRow].indices) {
